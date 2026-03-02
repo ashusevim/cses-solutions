@@ -62,49 +62,80 @@ struct custom_hash {
 
 class Solution {
 public:
+    vector<int> calculateRounds(int n, int m, vector<int>& vc, vector<vector<int>>& swapps){
+        vector<int> positions(n + 1);
+        vector<int> result;
+        vc.insert(vc.begin(), 0);
+        
+        // store the positions of the values
+        for(int i = 1; i<=n; i++){
+            positions[vc[i]] = i;
+        }
+
+        // calculate the initial number of rounds
+        int cnt = 1;
+        for(int i = 1; i<n; i++){
+            cnt += (positions[i] > positions[i+1]);
+        }
+
+        // Declare a set to store the pairs of values that will
+        set<pair<int, int>> updatedPairs;
+
+        for(int i = 0; i<m; i++){
+            // positions to be swapped
+            int L = swapps[i][0], R = swapps[i][1];
+
+            // insert pairs that will be updated
+            if(vc[L] + 1 <= n)updatedPairs.insert({vc[L], vc[L]+1});
+            if(vc[L] - 1 >= 1)updatedPairs.insert({vc[L]-1, vc[L]});
+            if(vc[R] + 1 <= n)updatedPairs.insert({vc[R], vc[R]+1});
+            if(vc[R] - 1 >= 1)updatedPairs.insert({vc[R]-1, vc[R]});
+        
+            // update the count before the swap
+            for(auto swapped: updatedPairs){
+                cnt -= positions[swapped.first] > positions[swapped.second];
+            }
+
+            // perform the swap
+            swap(vc[L], vc[R]);
+
+            // update the position of the value at position L
+            positions[vc[L]] = L;
+            
+            // update the position of the value at position R
+            positions[vc[R]] = R;
+
+            // update the count after the swap
+            for(auto swapped: updatedPairs){
+                cnt += positions[swapped.first] > positions[swapped.second];
+            }
+
+            result.push_back(cnt);
+
+            // Clear the set for the next operation
+            result.clear();
+        }
+
+        return result;
+    }
     void solve() {
         // n -> number of elements
         // m -> number of operations
         int n, m;
         cin >> n >> m;
-        vector<ll> vc;
+        vector<int> vc;
         for(int i = 0; i<n; i++)cin >> vc[i];
-
-        while(m--){
-            // positions to be swapped
+        vector<vector<int>>swapps;
+        
+        for(int i = 0; i<m; i++){
             int a, b;
             cin >> a >> b;
-
-            swap(vc[a], vc[b]);
-
-            int rounds = 0;
-            int cnt = 1;
-            while(cnt <= n){
-                
-            }
-
-            // 2 3
-
-            // original -> 4 2 1 5 3
-            // swapped ->  4 1 2 5 3
-            // round 1 -> 1 2 3
-            // round 2 -> 4 5
-
-            // 1 5
-
-            // swapped -> 3 1 2 5 4
-            // round 1 -> 1 2 
-            // round 2 -> 3 4
-            // round 3 -> 5
-
-            // 2 3
-
-            // swapped -> 3 2 1 5 4
-            // round 1 -> 1
-            // round 2 -> 2
-            // round 3 -> 3
-            // round 4 -> 4
-            // round 5 -> 5
+            swapps.push_back({a, b});
+        }
+        
+        vector<int> ans = calculateRounds(n, m, vc, swapps);
+        for(auto i:ans){
+            cout << i << '\n';
         }
     }
 };
